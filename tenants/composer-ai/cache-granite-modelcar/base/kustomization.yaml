@@ -4,4 +4,4 @@ kind: Kustomization
 namespace: composer-ai-apps
 
 resources:
-  - granite-imagestream.yaml
+  - cache-modelcar-job.yaml
