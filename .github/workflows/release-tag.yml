@@ -10,7 +10,7 @@ on:
       appOfApps_tag:
         description: 'Tag to use for AppOfApps (Use tagged release if blank)'
         required: false
-        
+
 jobs:
   tag_and_push:
     runs-on: ubuntu-latest
@@ -20,7 +20,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      
+
       - name: Information
         run: |
           echo "Creating Tag ${{ github.event.inputs.tag}}"
@@ -52,7 +52,7 @@ jobs:
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add --all
           git commit -m "Updating tenants/composer-ai/apps/base/app-of-apps to point to ${{ github.event.inputs.appOfApps_tag }}"
-  
+
       - name: Create tag
         run: git tag ${{ github.event.inputs.tag }}
 
