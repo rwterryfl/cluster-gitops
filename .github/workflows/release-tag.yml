@@ -34,6 +34,10 @@ jobs:
           echo "Updating clusters/overlays/aws-open-environment/patch-application-repo-revision.yaml to point to ${{ github.event.inputs.tag}}"
           yq eval -i '.[0].value = "${{ github.event.inputs.tag}}"' clusters/overlays/aws-open-environment/patch-application-repo-revision.yaml
 
+          # TODO: Remove this once TARGET_REVISION is set correctly
+          echo "Updating clusters/overlays/demo.redhat.com/patch-application-repo-revision.yaml to point to ${{ github.event.inputs.tag}}"
+          yq eval -i '.[0].value = "${{ github.event.inputs.tag}}"' clusters/overlays/demo.redhat.com/patch-application-repo-revision.yaml
+
       - name: Update App of Apps to Tag
         run: |
           export TAG="${{ github.event.inputs.tag}}"
@@ -41,7 +45,7 @@ jobs:
             echo "Using tagged release for AppOfApps"
             export TAG="${{ github.event.inputs.tag}}"
           else
-            echo "Updating AppOfApps to ${{ github.event.inputs.appOfApps_tag}}"
+            echo "Updating AppOfApps to ${{ github.event.inputs.tag}}"
           fi
           echo "Updating tenants/composer-ai/apps/base/app-of-apps.yaml to point to $TAG"
           yq eval -i '.spec.sources.[0].targetRevision = "${{ github.event.inputs.appOfApps_tag}}"' tenants/composer-ai/apps/base/app-of-apps.yaml
