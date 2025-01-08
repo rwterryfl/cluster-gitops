@@ -1,0 +1,76 @@
+name: Tag and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release'
+        required: true
+        default: 'v0.0.0'
+      appOfApps_tag:
+        description: 'Tag to use for AppOfApps (Use tagged release if blank)'
+        required: false
+
+jobs:
+  tag_and_push:
+    runs-on: ubuntu-latest
+    permissions: write-all
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+
+      - name: Information
+        run: |
+          echo "Creating Tag ${{ github.event.inputs.tag}}"
+
+
+      - name: Update Overlays to point to tag
+        run: |
+          echo "Updating clusters/overlays/composer-ai-lab/patch-application-repo-revision.yaml to point to ${{ github.event.inputs.tag}}"
+          yq eval -i '.[0].value = "${{ github.event.inputs.tag}}"' clusters/overlays/composer-ai-lab/patch-application-repo-revision.yaml
+
+          echo "Updating clusters/overlays/aws-open-environment/patch-application-repo-revision.yaml to point to ${{ github.event.inputs.tag}}"
+          yq eval -i '.[0].value = "${{ github.event.inputs.tag}}"' clusters/overlays/aws-open-environment/patch-application-repo-revision.yaml
+
+      - name: Update App of Apps to Tag
+        run: |
+          export TAG="${{ github.event.inputs.tag}}"
+          if [ -z "${{ github.event.inputs.appOfApps_tag}}" ]; then
+            echo "Using tagged release for AppOfApps"
+            export TAG="${{ github.event.inputs.tag}}"
+          else
+            echo "Updating AppOfApps to ${{ github.event.inputs.appOfApps_tag}}"
+          fi
+          echo "Updating tenants/composer-ai/apps/base/app-of-apps.yaml to point to $TAG"
+          yq eval -i '.spec.sources.[0].targetRevision = "${{ github.event.inputs.appOfApps_tag}}"' tenants/composer-ai/apps/base/app-of-apps.yaml
+
+      - name: Commit changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add --all
+          git commit -m "Updating tenants/composer-ai/apps/base/app-of-apps to point to ${{ github.event.inputs.appOfApps_tag }}"
+
+      - name: Create tag
+        run: git tag ${{ github.event.inputs.tag }}
+
+      - name: Push tag
+        run: git push origin ${{ github.event.inputs.tag }}
+
+  release:
+    name: Release pushed tag
+    runs-on: ubuntu-latest
+    permissions: write-all
+
+    steps:
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.event.inputs.tag }}
+        run: |
+          gh release create "$tag" \
+              --repo="$GITHUB_REPOSITORY" \
+              --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
+              --generate-notes
