@@ -63,6 +63,7 @@ jobs:
     name: Release pushed tag
     runs-on: ubuntu-latest
     permissions: write-all
+    needs: tag_and_push
 
     steps:
       - name: Create release
