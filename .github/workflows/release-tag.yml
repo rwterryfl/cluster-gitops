@@ -34,10 +34,6 @@ jobs:
           echo "Updating clusters/overlays/aws-open-environment/patch-application-repo-revision.yaml to point to ${{ github.event.inputs.tag}}"
           yq eval -i '.[0].value = "${{ github.event.inputs.tag}}"' clusters/overlays/aws-open-environment/patch-application-repo-revision.yaml
 
-          # TODO: Remove this once TARGET_REVISION is set correctly
-          echo "Updating clusters/overlays/demo.redhat.com/patch-application-repo-revision.yaml to point to ${{ github.event.inputs.tag}}"
-          yq eval -i '.[0].value = "${{ github.event.inputs.tag}}"' clusters/overlays/demo.redhat.com/patch-application-repo-revision.yaml
-
       - name: Update App of Apps to Tag
         run: |
           export TAG="${{ github.event.inputs.tag}}"
